@@ -1,0 +1,9 @@
+L: 1.0          # rod length [m]
+T: 0.1          # total time [s]
+Nx: 50          # number of spatial intervals
+Nt: 5000        # number of time steps
+alpha: 1e-4     # thermal diffusivity [m^2/s]
+u0: 20.0        # initial temperature [°C]
+bc_left: 100.0  # left boundary temperature [°C]
+bc_right: 0.0   # right boundary temperature [°C]
+output: results.csv
