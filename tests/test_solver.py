@@ -2,8 +2,21 @@ import numpy as np
 import pytest
 import tempfile
 import os
+import yaml
+from contextlib import contextmanager
 from heat_solver.config import HeatConfig, load_config
 from heat_solver.solver import explicit_fd
+
+@contextmanager
+def temp_config_file(content: str):
+    """Context manager for creating and cleaning up temporary config files."""
+    with tempfile.NamedTemporaryFile(mode='w', suffix='.yaml', delete=False) as f:
+        f.write(content)
+        temp_path = f.name
+    try:
+        yield temp_path
+    finally:
+        os.unlink(temp_path)
 
 def make_cfg(ratio: float = 0.4) -> HeatConfig:
     """Helper that returns a config with a controllable stability ratio r."""
@@ -53,11 +66,7 @@ bc_left: 100.0
 bc_right: 0.0
 output: results.csv
 """
-    with tempfile.NamedTemporaryFile(mode='w', suffix='.yaml', delete=False) as f:
-        f.write(config_content)
-        temp_path = f.name
-    
-    try:
+    with temp_config_file(config_content) as temp_path:
         cfg = load_config(temp_path)
         assert cfg.L == 1.0
         assert cfg.T == 0.1
@@ -68,8 +77,6 @@ output: results.csv
         assert cfg.bc_left == 100.0
         assert cfg.bc_right == 0.0
         assert cfg.output == "results.csv"
-    finally:
-        os.unlink(temp_path)
 
 def test_load_config_missing_field():
     """Test that load_config raises KeyError when required field is missing."""
@@ -84,15 +91,9 @@ bc_left: 100.0
 # bc_right is missing
 output: results.csv
 """
-    with tempfile.NamedTemporaryFile(mode='w', suffix='.yaml', delete=False) as f:
-        f.write(config_content)
-        temp_path = f.name
-    
-    try:
+    with temp_config_file(config_content) as temp_path:
         with pytest.raises(KeyError):
             load_config(temp_path)
-    finally:
-        os.unlink(temp_path)
 
 def test_load_config_invalid_type():
     """Test that load_config handles invalid parameter types."""
@@ -107,15 +108,9 @@ bc_left: 100.0
 bc_right: 0.0
 output: results.csv
 """
-    with tempfile.NamedTemporaryFile(mode='w', suffix='.yaml', delete=False) as f:
-        f.write(config_content)
-        temp_path = f.name
-    
-    try:
+    with temp_config_file(config_content) as temp_path:
         with pytest.raises(ValueError):
             load_config(temp_path)
-    finally:
-        os.unlink(temp_path)
 
 def test_load_config_missing_file():
     """Test that load_config raises FileNotFoundError for non-existent file."""
@@ -130,14 +125,7 @@ T: 0.1
 Nx: [50
     missing closing bracket
 """
-    with tempfile.NamedTemporaryFile(mode='w', suffix='.yaml', delete=False) as f:
-        f.write(config_content)
-        temp_path = f.name
-    
-    try:
+    with temp_config_file(config_content) as temp_path:
         # yaml.safe_load will raise a yaml.YAMLError for invalid syntax
-        import yaml
         with pytest.raises(yaml.YAMLError):
             load_config(temp_path)
-    finally:
-        os.unlink(temp_path)
