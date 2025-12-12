@@ -122,8 +122,8 @@ def test_load_config_invalid_yaml():
     config_content = """
 L: 1.0
 T: 0.1
-Nx: [50
-    missing closing bracket
+Nx: [50,
+Nt: 5000
 """
     with temp_config_file(config_content) as temp_path:
         # yaml.safe_load will raise a yaml.YAMLError for invalid syntax
