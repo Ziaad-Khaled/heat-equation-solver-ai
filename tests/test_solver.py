@@ -3,7 +3,7 @@ import pytest
 from heat_solver.config import HeatConfig
 from heat_solver.solver import explicit_fd
 
-def make_cfg(ratio: float = 0.4) -> HeatConfig:
+def make_config(ratio: float = 0.4) -> HeatConfig:
     """Helper that returns a config with a controllable stability ratio r."""
     L, T, Nx, Nt, alpha = 1.0, 0.1, 20, 2000, 1e-4
     dx = L / Nx
@@ -21,17 +21,17 @@ def make_cfg(ratio: float = 0.4) -> HeatConfig:
     )
 
 def test_stability_condition_pass():
-    cfg = make_cfg(ratio=0.45)               # r < 0.5 → should not raise
+    cfg = make_config(ratio=0.45)               # r < 0.5 → should not raise
     u = explicit_fd(cfg)
     assert u.shape == (cfg.Nt + 1, cfg.Nx + 1)
 
 def test_stability_condition_fail():
-    cfg = make_cfg(ratio=0.6)                # r > 0.5 → ValueError
+    cfg = make_config(ratio=0.6)                # r > 0.5 → ValueError
     with pytest.raises(ValueError):
         explicit_fd(cfg)
 
 def test_boundary_values():
-    cfg = make_cfg()
+    cfg = make_config()
     u = explicit_fd(cfg)
     # boundaries stay constant for all times
     assert np.allclose(u[:, 0], cfg.bc_left)
